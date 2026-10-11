@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🎙️ The Lenny Growth Assistant
 
 <p align="center">
@@ -492,3 +493,6 @@ python scripts/migrate_mysql_to_postgres.py
 - **Podcast Content & Transcripts**: Grounded in Lenny Rachitsky’s podcast interviews, curated in [ChatPRD/lennys-podcast-transcripts](https://github.com/ChatPRD/lennys-podcast-transcripts).
 - **Software License**: Distributed under the [MIT License](LICENSE).
 - **Author**: Built with ❤️ for the global product and growth community.
+=======
+# The-Lenny-Growth-Assistant
+>>>>>>> origin/main
