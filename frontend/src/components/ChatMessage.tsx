@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { User, Bot, BookOpen, ExternalLink, ChevronDown, ChevronUp, FileCode } from 'lucide-react';
+import { User, BookOpen, ExternalLink, ChevronDown, ChevronUp, FileCode } from 'lucide-react';
 import type { Message, Citation } from '../types';
+import { Logo } from './Logo';
 
 interface ChatMessageProps {
   message: Message;
@@ -12,17 +13,17 @@ function renderFormattedText(text: string) {
   const lines = text.split('\n');
   return lines.map((line, idx) => {
     if (line.startsWith('### ')) {
-      return <h3 key={idx}>{line.substring(4)}</h3>;
+      return <h3 key={idx} className="md-h3">{line.substring(4)}</h3>;
     }
     if (line.startsWith('## ')) {
-      return <h2 key={idx}>{line.substring(3)}</h2>;
+      return <h2 key={idx} className="md-h2">{line.substring(3)}</h2>;
     }
     if (line.startsWith('# ')) {
-      return <h1 key={idx}>{line.substring(2)}</h1>;
+      return <h1 key={idx} className="md-h1">{line.substring(2)}</h1>;
     }
     if (line.startsWith('- ') || line.startsWith('* ')) {
       return (
-        <li key={idx} style={{ marginLeft: 20 }}>
+        <li key={idx} className="md-li">
           {formatInline(line.substring(2))}
         </li>
       );
@@ -30,7 +31,7 @@ function renderFormattedText(text: string) {
     if (!line.trim()) {
       return <div key={idx} style={{ height: 10 }} />;
     }
-    return <p key={idx}>{formatInline(line)}</p>;
+    return <p key={idx} className="md-p">{formatInline(line)}</p>;
   });
 }
 
@@ -38,10 +39,10 @@ function formatInline(str: string): React.ReactNode {
   const parts = str.split(/(\*\*.*?\*\*|`.*?`)/g);
   return parts.map((part, i) => {
     if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={i}>{part.slice(2, -2)}</strong>;
+      return <strong key={i} className="md-bold">{part.slice(2, -2)}</strong>;
     }
     if (part.startsWith('`') && part.endsWith('`')) {
-      return <code key={i}>{part.slice(1, -1)}</code>;
+      return <code key={i} className="md-code">{part.slice(1, -1)}</code>;
     }
     return part;
   });
@@ -59,7 +60,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   return (
     <div className={`message-row ${isUser ? 'user' : 'assistant'}`}>
       <div className={`avatar ${isUser ? 'user' : 'assistant'}`}>
-        {isUser ? <User size={18} /> : <Bot size={18} />}
+        {isUser ? <User size={16} /> : <Logo size={20} />}
       </div>
 
       <div className="message-bubble">
@@ -68,18 +69,13 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
         </div>
 
         {hasArtifact && onOpenArtifact && (
-          <div style={{ marginTop: 12 }}>
+          <div style={{ marginTop: 14 }}>
             <button
-              className="btn-secondary"
-              style={{
-                background: 'rgba(99, 102, 241, 0.15)',
-                borderColor: 'var(--accent-primary)',
-                color: '#c7d2fe',
-              }}
+              className="open-canvas-action-btn"
               onClick={onOpenArtifact}
             >
               <FileCode size={14} />
-              <span>Open Generated Artifact in Viewer</span>
+              <span>Inspect Generated Artifact in Canvas</span>
             </button>
           </div>
         )}
@@ -87,45 +83,41 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
         {citations.length > 0 && (
           <div className="citations-container">
             <button
-              className="icon-btn-subtle"
-              style={{
-                width: '100%',
-                justifyContent: 'space-between',
-                padding: '4px 6px',
-                color: '#a5b4fc',
-                fontWeight: 600,
-                fontSize: '0.78rem',
-              }}
+              className="citations-toggle-btn"
               onClick={() => setShowSources(!showSources)}
             >
               <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <BookOpen size={14} />
-                <span>Grounded Sources & Citations ({citations.length})</span>
+                <BookOpen size={13} />
+                <span>Authoritative Transcript Sources ({citations.length})</span>
               </span>
-              {showSources ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              {showSources ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
             </button>
 
             {showSources && (
-              <div className="citation-cards" style={{ marginTop: 8 }}>
+              <div className="citation-cards-grid">
                 {citations.map((c, i) => (
-                  <div key={i} className="citation-card">
-                    <div className="citation-title">
-                      <span>{c.source_title}</span>
+                  <div key={i} className="citation-card-item">
+                    <div className="citation-header-row">
+                      <span className="citation-source-name">{c.source_title}</span>
                       {c.url && (
                         <a
                           href={c.url}
                           target="_blank"
                           rel="noreferrer"
-                          style={{ color: '#818cf8', display: 'flex', alignItems: 'center' }}
+                          className="citation-link"
+                          title="Open YouTube interview"
                         >
                           <ExternalLink size={12} />
                         </a>
                       )}
                     </div>
                     {c.author_or_guest && (
-                      <div className="citation-author">Guest / Author: {c.author_or_guest}</div>
+                      <div className="citation-guest-name">Guest: {c.author_or_guest}</div>
                     )}
-                    <div className="citation-snippet">"{c.snippet}"</div>
+                    {c.provenance_file && (
+                      <div className="citation-file-badge">File: {c.provenance_file}</div>
+                    )}
+                    <div className="citation-excerpt">"{c.snippet}"</div>
                   </div>
                 ))}
               </div>
@@ -134,12 +126,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
         )}
 
         {!isUser && (
-          <div className="message-meta">
-            {message.provider_used && (
-              <span className="badge-tag">
-                {message.provider_used}: {message.model_used || 'default'}
-              </span>
-            )}
+          <div className="message-meta-footer">
             <span>{new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
           </div>
         )}

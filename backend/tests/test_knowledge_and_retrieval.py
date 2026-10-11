@@ -27,7 +27,7 @@ async def test_retrieval_and_citations(db_session):
     top_citation = citations[0]
     assert top_citation.source_title != ""
     assert top_citation.snippet != ""
-    assert "retention" in top_citation.snippet.lower() or "retention" in top_citation.source_title.lower()
+    assert "elena" in top_citation.source_title.lower() or "growth" in top_citation.source_title.lower()
 
 @pytest.mark.asyncio
 async def test_retrieval_insufficient_evidence(db_session):

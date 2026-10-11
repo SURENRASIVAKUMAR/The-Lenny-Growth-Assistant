@@ -4,6 +4,7 @@ export interface Citation {
   chunk_id: string;
   url?: string | null;
   author_or_guest?: string | null;
+  provenance_file?: string | null;
   snippet: string;
 }
 
@@ -61,6 +62,7 @@ export interface ConfigStatus {
   ollama_available: boolean;
   database_status: string;
   database_name: string;
+  active_engine?: string;
   rag_sources_count: number;
   rag_chunks_count: number;
 }
@@ -82,3 +84,5 @@ export interface ChatResponsePayload {
   rag_used: boolean;
   warning?: string | null;
 }
+
+export type ThemeType = 'aurora' | 'slate' | 'emerald' | 'light' | 'oled';

@@ -183,7 +183,7 @@ export const KnowledgeModal: React.FC<KnowledgeModalProps> = ({
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                       <strong style={{ fontSize: '0.88rem', color: 'var(--text-main)' }}>{s.title}</strong>
-                      <span className="badge-tag" style={{ color: '#818cf8', backgroundColor: 'rgba(99, 102, 241, 0.15)' }}>
+                      <span className="badge-tag" style={{ color: 'var(--text-pure)', backgroundColor: 'var(--bg-hover)' }}>
                         {s.chunk_count} chunks
                       </span>
                     </div>
@@ -196,7 +196,7 @@ export const KnowledgeModal: React.FC<KnowledgeModalProps> = ({
                           href={s.url}
                           target="_blank"
                           rel="noreferrer"
-                          style={{ color: '#818cf8', display: 'flex', alignItems: 'center', gap: 3 }}
+                          style={{ color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 3 }}
                         >
                           Link <ExternalLink size={10} />
                         </a>
@@ -276,8 +276,7 @@ export const KnowledgeModal: React.FC<KnowledgeModalProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="new-chat-btn"
-                  style={{ margin: 0 }}
+                  className="btn-primary"
                   disabled={isSubmitting || !newTitle.trim() || !newContent.trim()}
                 >
                   <Plus size={14} />

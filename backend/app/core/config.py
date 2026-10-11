@@ -9,17 +9,20 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api"
     ENVIRONMENT: str = "development"
     
-    # Database Configuration (Defaults to local XAMPP MySQL)
-    DB_DRIVER: str = "mysql+pymysql"
-    DB_USER: str = "root"
-    DB_PASSWORD: str = ""
+    # Database Configuration (PostgreSQL primary)
+    DB_DRIVER: str = "postgresql+psycopg2"
+    DB_USER: str = "postgres"
+    DB_PASSWORD: str = "postgres"
     DB_HOST: str = "localhost"
-    DB_PORT: int = 3306
+    DB_PORT: int = 5432
     DB_NAME: str = "lenny_growth_assistant"
     DATABASE_URL: Optional[str] = None
     
+    # Preserved MySQL URL for reading/migrating existing user data
+    MYSQL_DATABASE_URL: Optional[str] = "mysql+pymysql://root:@localhost:3306/lenny_growth_assistant"
+    
     # AI Provider Configuration
-    # Options: "ollama", "openai"
+    # Options: "ollama", "openai", "demo"
     AI_PROVIDER: str = "ollama"
     
     # OpenAI Settings
@@ -32,10 +35,14 @@ class Settings(BaseSettings):
     OLLAMA_MODEL: str = "llama3:latest"
     OLLAMA_TIMEOUT_SECONDS: int = 60
     
-    # RAG Settings
-    CHUNK_SIZE: int = 500
-    CHUNK_OVERLAP: int = 100
-    RAG_TOP_K: int = 4
+    # Authoritative Repository Settings
+    AUTHORITATIVE_REPO_PATH: str = "data/lennys-podcast-transcripts"
+    
+    # Strict Grounding & RAG Settings
+    CHUNK_SIZE: int = 600
+    CHUNK_OVERLAP: int = 120
+    RAG_TOP_K: int = 5
+    MIN_EVIDENCE_THRESHOLD: float = 0.14  # Balanced threshold preventing hallucinations while supporting multi-token queries
     
     # CORS
     CORS_ORIGINS: List[str] = [
@@ -48,6 +55,6 @@ class Settings(BaseSettings):
         if self.DATABASE_URL:
             return self.DATABASE_URL
         pwd = f":{self.DB_PASSWORD}" if self.DB_PASSWORD else ""
-        return f"{self.DB_DRIVER}://{self.DB_USER}{pwd}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}?charset=utf8mb4"
+        return f"{self.DB_DRIVER}://{self.DB_USER}{pwd}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
 settings = Settings()

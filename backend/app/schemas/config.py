@@ -7,6 +7,9 @@ class DatabaseStatus(BaseModel):
     host: str
     port: int
     driver: str
+    active_engine: Optional[str] = None
+    setup_required: Optional[bool] = False
+    setup_instructions: Optional[str] = None
     error: Optional[str] = None
 
 class ProviderStatus(BaseModel):
@@ -34,5 +37,6 @@ class ConfigStatusResponse(BaseModel):
     ollama_available: bool
     database_status: str
     database_name: str
+    active_engine: Optional[str] = "mysql"
     rag_sources_count: int
     rag_chunks_count: int

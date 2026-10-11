@@ -45,14 +45,14 @@ export const Ship30Modal: React.FC<Ship30ModalProps> = ({ isOpen, onClose, onSub
                 width: 32,
                 height: 32,
                 borderRadius: 8,
-                background: 'var(--gold-gradient)',
+                background: '#ffffff',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#1a1001',
+                color: '#000000',
               }}
             >
-              <Feather size={18} />
+              <Feather size={16} />
             </div>
             <div>
               <h3 style={{ fontSize: '1rem', fontWeight: 700 }}>Ship 30 for 30 Essay Writer</h3>
@@ -142,14 +142,14 @@ export const Ship30Modal: React.FC<Ship30ModalProps> = ({ isOpen, onClose, onSub
               style={{
                 padding: '10px 14px',
                 borderRadius: 'var(--radius-sm)',
-                backgroundColor: 'rgba(245, 158, 11, 0.08)',
-                border: '1px solid rgba(245, 158, 11, 0.25)',
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid var(--border-hairline)',
                 fontSize: '0.78rem',
-                color: '#fcd34d',
+                color: 'var(--text-secondary)',
                 lineHeight: 1.5,
               }}
             >
-              <strong>Ship 30 Framework:</strong> Includes a counter-intuitive hook, single clear thesis, narrative progression with high-signal subheadings, evidence citations from the knowledge base, and an actionable takeaway.
+              <strong style={{ color: '#ffffff' }}>Ship 30 Framework:</strong> Includes a counter-intuitive hook, single clear thesis, narrative progression with high-signal subheadings, evidence citations from the knowledge base, and an actionable takeaway.
             </div>
           </div>
 
@@ -159,8 +159,7 @@ export const Ship30Modal: React.FC<Ship30ModalProps> = ({ isOpen, onClose, onSub
             </button>
             <button
               type="submit"
-              className="new-chat-btn"
-              style={{ margin: 0, background: 'var(--gold-gradient)', color: '#1a1001' }}
+              className="btn-primary"
               disabled={!topic.trim()}
             >
               <Feather size={14} />

@@ -8,6 +8,7 @@ class Citation(BaseModel):
     chunk_id: str
     url: Optional[str] = None
     author_or_guest: Optional[str] = None
+    provenance_file: Optional[str] = None
     snippet: str
 
 class MessageCreate(BaseModel):

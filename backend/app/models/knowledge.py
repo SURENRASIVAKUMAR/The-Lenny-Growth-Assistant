@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import Column, String, Text, Integer, DateTime, ForeignKey, Index
+from sqlalchemy import Column, String, Text, Integer, Boolean, DateTime, ForeignKey, Index
 from sqlalchemy.orm import relationship
 from backend.app.core.database import Base
 
@@ -15,6 +15,10 @@ class KnowledgeSource(Base):
     source_type = Column(String(50), nullable=False, default="podcast_transcript")  # podcast_transcript, newsletter, essay, guide
     url = Column(String(512), nullable=True)
     author_or_guest = Column(String(255), nullable=True)
+    provenance_file = Column(String(512), nullable=True)  # repository relative file path (e.g. episodes/elena-verna/transcript.md)
+    publish_date = Column(String(50), nullable=True)     # publication date from YAML frontmatter
+    episode_duration = Column(String(50), nullable=True) # human-readable duration from YAML frontmatter
+    is_authoritative = Column(Boolean, default=True, nullable=False) # True = authoritative repo; False = synthetic/demo
     summary = Column(Text, nullable=True)
     raw_content = Column(Text, nullable=True)
     status = Column(String(50), nullable=False, default="indexed")  # indexed, pending, failed

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings as SettingsIcon, X, Info } from 'lucide-react';
+import { Settings as SettingsIcon, X, Info, Sparkles, Cpu, Cloud } from 'lucide-react';
 import type { ConfigStatus } from '../types';
 
 interface SettingsModalProps {
@@ -15,8 +15,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   config,
   onSaveProvider,
 }) => {
-  const [selectedProvider, setSelectedProvider] = useState(config?.active_provider || 'ollama');
-  const [selectedModel, setSelectedModel] = useState(config?.active_model || 'llama3:latest');
+  const [selectedProvider, setSelectedProvider] = useState(config?.active_provider || 'demo');
+  const [selectedModel, setSelectedModel] = useState(config?.active_model || 'lenny-rag-engine-v1');
 
   if (!isOpen) return null;
 
@@ -61,12 +61,39 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           {/* Provider Selection */}
           <div className="form-group">
             <label className="form-label">Active AI Inference Provider</label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {/* Option 1: Demo Synthesizer */}
+              <div
+                className={`example-card ${selectedProvider === 'demo' ? 'active' : ''}`}
+                style={{
+                  border: selectedProvider === 'demo' ? '1px solid var(--accent-primary)' : undefined,
+                  backgroundColor: selectedProvider === 'demo' ? 'rgba(99, 102, 241, 0.12)' : undefined,
+                  cursor: 'pointer',
+                }}
+                onClick={() => {
+                  setSelectedProvider('demo');
+                  setSelectedModel('lenny-rag-engine-v1');
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Sparkles size={16} color="currentColor" />
+                    <strong>Built-in RAG Synthesizer (Instant / Offline)</strong>
+                  </div>
+                  <span className="badge-tag" style={{ color: '#6ee7b7' }}>Always Ready</span>
+                </div>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 4 }}>
+                  Zero setup required. Directly synthesizes answers and Ship 30 essays from the MySQL knowledge base.
+                </p>
+              </div>
+
+              {/* Option 2: Local Ollama */}
               <div
                 className={`example-card ${selectedProvider === 'ollama' ? 'active' : ''}`}
                 style={{
                   border: selectedProvider === 'ollama' ? '1px solid var(--accent-primary)' : undefined,
-                  backgroundColor: selectedProvider === 'ollama' ? 'rgba(99, 102, 241, 0.12)' : undefined,
+                  backgroundColor: selectedProvider === 'ollama' ? 'rgba(255, 255, 255, 0.08)' : undefined,
+                  cursor: 'pointer',
                 }}
                 onClick={() => {
                   setSelectedProvider('ollama');
@@ -74,23 +101,28 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <strong>Local Ollama</strong>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Cpu size={16} color="currentColor" />
+                    <strong>Local Ollama Service</strong>
+                  </div>
                   {config?.ollama_available ? (
                     <span className="badge-tag" style={{ color: '#6ee7b7' }}>Online</span>
                   ) : (
-                    <span className="badge-tag" style={{ color: '#fcd34d' }}>Not detected</span>
+                    <span className="badge-tag" style={{ color: '#f87171' }}>Offline (Port 11434)</span>
                   )}
                 </div>
                 <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 4 }}>
-                  Privacy-first local models (http://localhost:11434)
+                  Connects to local Ollama (`ollama serve`). Privacy-first local models.
                 </p>
               </div>
 
+              {/* Option 3: Cloud OpenAI */}
               <div
                 className={`example-card ${selectedProvider === 'openai' ? 'active' : ''}`}
                 style={{
                   border: selectedProvider === 'openai' ? '1px solid var(--accent-primary)' : undefined,
-                  backgroundColor: selectedProvider === 'openai' ? 'rgba(99, 102, 241, 0.12)' : undefined,
+                  backgroundColor: selectedProvider === 'openai' ? 'rgba(255, 255, 255, 0.08)' : undefined,
+                  cursor: 'pointer',
                 }}
                 onClick={() => {
                   setSelectedProvider('openai');
@@ -98,15 +130,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <strong>Cloud OpenAI</strong>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Cloud size={16} color="currentColor" />
+                    <strong>Cloud OpenAI API</strong>
+                  </div>
                   {config?.openai_configured ? (
                     <span className="badge-tag" style={{ color: '#6ee7b7' }}>Key Present</span>
                   ) : (
-                    <span className="badge-tag" style={{ color: '#f87171' }}>Missing Key</span>
+                    <span className="badge-tag" style={{ color: '#f87171' }}>Key Missing in .env</span>
                   )}
                 </div>
                 <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 4 }}>
-                  High-speed cloud models (gpt-4o-mini, gpt-4o)
+                  High-speed cloud inference (`gpt-4o-mini`). Requires `OPENAI_API_KEY` in `.env`.
                 </p>
               </div>
             </div>
@@ -120,7 +155,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               className="form-input"
               value={selectedModel}
               onChange={(e) => setSelectedModel(e.target.value)}
-              placeholder={selectedProvider === 'openai' ? 'gpt-4o-mini' : 'llama3:latest'}
+              placeholder="Model name"
             />
           </div>
 
@@ -142,15 +177,24 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </strong>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
-              <span>Database (XAMPP MySQL):</span>
-              <span style={{ color: '#6ee7b7', fontWeight: 600 }}>
-                {config?.database_name} ({config?.database_status})
+              <span>Database Engine:</span>
+              <span style={{ color: config?.active_engine === 'postgresql' ? '#6ee7b7' : '#60a5fa', fontWeight: 600 }}>
+                {config?.active_engine === 'postgresql' ? 'PostgreSQL (Port 5432)' : 'MySQL Fallback (Port 3306)'}
               </span>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
-              <span>Knowledge Base Chunks:</span>
-              <span style={{ color: '#c7d2fe' }}>{config?.rag_chunks_count} chunks indexed</span>
+              <span>PostgreSQL Primary Target:</span>
+              <span style={{ color: config?.active_engine === 'postgresql' ? '#6ee7b7' : '#fbbf24' }}>
+                {config?.active_engine === 'postgresql' ? 'Connected' : 'Setup Required (Port 5432)'}
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
+              <span>Authoritative Repository Index:</span>
+              <span style={{ color: '#c7d2fe' }}>
+                {config?.rag_sources_count} eps • {config?.rag_chunks_count} chunks
+              </span>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
@@ -164,7 +208,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           <button className="btn-secondary" onClick={onClose}>
             Cancel
           </button>
-          <button className="new-chat-btn" style={{ margin: 0 }} onClick={handleSave}>
+          <button className="btn-primary" onClick={handleSave}>
             Apply Settings
           </button>
         </div>

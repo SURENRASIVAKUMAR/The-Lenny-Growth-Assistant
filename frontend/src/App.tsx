@@ -5,6 +5,7 @@ import type {
   Artifact,
   ConfigStatus,
   Ship30Config,
+  ThemeType,
 } from './types';
 import {
   fetchConfigStatus,
@@ -16,13 +17,13 @@ import {
   sendChatMessage,
   fetchArtifacts,
 } from './services/api';
-import { Sidebar } from './components/Sidebar';
+import { Sidebar, type ActiveView } from './components/Sidebar';
 import { Header } from './components/Header';
 import { ChatArea } from './components/ChatArea';
 import { ArtifactViewer } from './components/ArtifactViewer';
-import { Ship30Modal } from './components/Ship30Modal';
-import { KnowledgeModal } from './components/KnowledgeModal';
-import { SettingsModal } from './components/SettingsModal';
+import { SettingsPage } from './components/SettingsPage';
+import { Ship30StudioPage } from './components/Ship30StudioPage';
+import { KnowledgePage } from './components/KnowledgePage';
 
 export const App: React.FC = () => {
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -32,20 +33,28 @@ export const App: React.FC = () => {
   const [activeArtifactId, setActiveArtifactId] = useState<string | null>(null);
 
   const [config, setConfig] = useState<ConfigStatus | null>(null);
+  const [activeView, setActiveView] = useState<ActiveView>('chat');
   const [activeMode, setActiveMode] = useState<'standard' | 'ship30'>('standard');
   const [ship30PendingParams, setShip30PendingParams] = useState<Ship30Config | null>(null);
+
+  // Black & White Theme System: 'oled' (Black, default), 'light' (White)
+  const [theme, setTheme] = useState<ThemeType>(() => {
+    const saved = localStorage.getItem('lenny_theme') as ThemeType;
+    if (saved === 'light') return 'light';
+    return 'oled';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('lenny_theme', theme);
+  }, [theme]);
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showArtifacts, setShowArtifacts] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  // Modals state
-  const [isShip30ModalOpen, setIsShip30ModalOpen] = useState(false);
-  const [isKnowledgeModalOpen, setIsKnowledgeModalOpen] = useState(false);
-  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
-
-  // Custom provider overrides from Settings modal
+  // Custom provider overrides from Settings
   const [providerOverride, setProviderOverride] = useState<string | undefined>(undefined);
   const [modelOverride, setModelOverride] = useState<string | undefined>(undefined);
 
@@ -129,11 +138,14 @@ export const App: React.FC = () => {
     }
   };
 
-  const handleSendMessage = async (text: string) => {
+  const handleSendMessage = async (text: string, overrideMode?: 'standard' | 'ship30', overrideParams?: Ship30Config) => {
     if (!text.trim() || isLoading) return;
 
     setIsLoading(true);
     setErrorMessage(null);
+
+    const modeToUse = overrideMode || activeMode;
+    const paramsToUse = overrideParams || ship30PendingParams;
 
     // Optimistically add user message
     const tempUserMsg: Message = {
@@ -149,8 +161,8 @@ export const App: React.FC = () => {
       const response = await sendChatMessage({
         sessionId: activeSessionId || undefined,
         message: text,
-        mode: activeMode,
-        ship30Params: ship30PendingParams || undefined,
+        mode: modeToUse,
+        ship30Params: paramsToUse || undefined,
         provider: providerOverride,
         model: modelOverride,
       });
@@ -171,13 +183,8 @@ export const App: React.FC = () => {
         setShowArtifacts(true);
       }
 
-      // If a fallback warning occurred
-      if (response.warning) {
-        console.warn('Inference warning:', response.warning);
-      }
-
       // Reset mode back to standard after Ship 30 execution
-      if (activeMode === 'ship30') {
+      if (modeToUse === 'ship30') {
         setActiveMode('standard');
         setShip30PendingParams(null);
       }
@@ -187,18 +194,21 @@ export const App: React.FC = () => {
       setSessions(updatedSessions);
     } catch (err: any) {
       setErrorMessage(err.message || 'Error occurred while contacting the model.');
-      // Remove temporary user message on error so user can retry
       setMessages((prev) => prev.filter((m) => m.id !== tempUserMsg.id));
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleShip30Configure = (shipConfig: Ship30Config) => {
+  const handleShip30StudioGenerate = (shipConfig: Ship30Config) => {
     setActiveMode('ship30');
     setShip30PendingParams(shipConfig);
-    // Automatically trigger essay generation
-    handleSendMessage(`Write a Ship 30 for 30 essay on: ${shipConfig.topic}`);
+    handleSendMessage(`Write a Ship 30 for 30 essay on: ${shipConfig.topic}`, 'ship30', shipConfig);
+  };
+
+  const handleAskAboutEpisode = (query: string) => {
+    setActiveView('chat');
+    handleSendMessage(query);
   };
 
   const handleSaveProviderConfig = (provider: string, model: string) => {
@@ -213,10 +223,9 @@ export const App: React.FC = () => {
     }
   };
 
-  const activeSession = sessions.find((s) => s.id === activeSessionId);
-
   return (
     <div className="app-container">
+      {/* Primary Sidebar with Page Navigation */}
       <Sidebar
         sessions={sessions}
         activeSessionId={activeSessionId}
@@ -226,71 +235,88 @@ export const App: React.FC = () => {
         onDeleteSession={handleDeleteSession}
         config={config}
         isMobileOpen={isMobileSidebarOpen}
+        activeView={activeView}
+        onNavigate={(view) => {
+          setActiveView(view);
+          setIsMobileSidebarOpen(false);
+        }}
       />
 
       <div className="main-content">
+        {/* Top Header with Active Page Switcher & Theme Picker */}
         <Header
-          sessionTitle={activeSession?.title || 'New Conversation'}
           config={config}
-          onOpenShip30={() => setIsShip30ModalOpen(true)}
-          onOpenKnowledge={() => setIsKnowledgeModalOpen(true)}
-          onOpenSettings={() => setIsSettingsModalOpen(true)}
           showArtifacts={showArtifacts}
           onToggleArtifacts={() => setShowArtifacts(!showArtifacts)}
           onToggleSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
           hasArtifacts={artifacts.length > 0}
-          activeMode={activeMode}
+          activeView={activeView}
+          onNavigate={setActiveView}
+          theme={theme}
+          onThemeChange={setTheme}
         />
 
-        <div className="workspace-layout">
-          <ChatArea
-            messages={messages}
-            isLoading={isLoading}
-            onSendMessage={handleSendMessage}
-            activeMode={activeMode}
-            onResetMode={() => {
-              setActiveMode('standard');
-              setShip30PendingParams(null);
-            }}
-            errorMessage={errorMessage}
-            onClearError={() => setErrorMessage(null)}
-            onOpenArtifact={() => setShowArtifacts(true)}
-            hasArtifacts={artifacts.length > 0}
-          />
-
-          {showArtifacts && (
-            <ArtifactViewer
-              artifacts={artifacts}
-              activeArtifactId={activeArtifactId}
-              onSelectArtifact={(id) => setActiveArtifactId(id)}
-              onClose={() => setShowArtifacts(false)}
+        {/* View Routing */}
+        {activeView === 'chat' && (
+          <div className="workspace-layout">
+            <ChatArea
+              messages={messages}
+              isLoading={isLoading}
+              onSendMessage={(text) => handleSendMessage(text)}
+              activeMode={activeMode}
+              onResetMode={() => {
+                setActiveMode('standard');
+                setShip30PendingParams(null);
+              }}
+              onOpenShip30={() => setActiveView('ship30')}
+              onOpenKnowledge={() => setActiveView('knowledge')}
+              errorMessage={errorMessage}
+              onClearError={() => setErrorMessage(null)}
+              onOpenArtifact={() => setShowArtifacts(true)}
+              hasArtifacts={artifacts.length > 0}
             />
-          )}
-        </div>
+
+            {showArtifacts && (
+              <ArtifactViewer
+                artifacts={artifacts}
+                activeArtifactId={activeArtifactId}
+                onSelectArtifact={(id) => setActiveArtifactId(id)}
+                onClose={() => setShowArtifacts(false)}
+              />
+            )}
+          </div>
+        )}
+
+        {activeView === 'settings' && (
+          <SettingsPage
+            config={config}
+            onSaveProvider={handleSaveProviderConfig}
+            onBackToChat={() => setActiveView('chat')}
+            theme={theme}
+            onThemeChange={setTheme}
+          />
+        )}
+
+        {activeView === 'ship30' && (
+          <Ship30StudioPage
+            onGenerateEssay={handleShip30StudioGenerate}
+            onBackToChat={() => setActiveView('chat')}
+            latestArtifact={artifacts.find((a) => a.artifact_type === 'essay') || artifacts[0]}
+            isLoading={isLoading}
+          />
+        )}
+
+        {activeView === 'knowledge' && (
+          <KnowledgePage
+            onBackToChat={() => setActiveView('chat')}
+            onAskAboutEpisode={handleAskAboutEpisode}
+            onSourcesUpdated={async () => {
+              const cfg = await fetchConfigStatus();
+              setConfig(cfg);
+            }}
+          />
+        )}
       </div>
-
-      {/* Modals */}
-      <Ship30Modal
-        isOpen={isShip30ModalOpen}
-        onClose={() => setIsShip30ModalOpen(false)}
-        onSubmit={handleShip30Configure}
-      />
-
-      <KnowledgeModal
-        isOpen={isKnowledgeModalOpen}
-        onClose={() => setIsKnowledgeModalOpen(false)}
-        onSourcesUpdated={async () => {
-          const cfg = await fetchConfigStatus();
-          setConfig(cfg);
-        }}
-      />
-
-      <SettingsModal
-        isOpen={isSettingsModalOpen}
-        onClose={() => setIsSettingsModalOpen(false)}
-        config={config}
-        onSaveProvider={handleSaveProviderConfig}
-      />
     </div>
   );
 };

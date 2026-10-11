@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, Feather, AlertCircle, X } from 'lucide-react';
+import { Plus, ArrowUp, Sparkles, Globe, AlertCircle, X, Compass, Feather } from 'lucide-react';
 import type { Message } from '../types';
 import { ChatMessage } from './ChatMessage';
+import { Logo } from './Logo';
 
 interface ChatAreaProps {
   messages: Message[];
@@ -9,46 +10,30 @@ interface ChatAreaProps {
   onSendMessage: (text: string) => void;
   activeMode: 'standard' | 'ship30';
   onResetMode: () => void;
+  onOpenShip30: () => void;
+  onOpenKnowledge: () => void;
   errorMessage: string | null;
   onClearError: () => void;
   onOpenArtifact: () => void;
   hasArtifacts: boolean;
 }
 
-const EXAMPLE_PROMPTS = [
-  {
-    title: 'Retention & Activation',
-    prompt: 'How do I diagnose retention issues and find our core activation milestone before scaling acquisition?',
-  },
-  {
-    title: 'Product-Market Fit',
-    prompt: "What is Rahul Vohra's Sean Ellis survey benchmark for Product-Market Fit and how do the Four Fits work?",
-  },
-  {
-    title: 'SaaS Pricing & Packaging',
-    prompt: 'How should B2B SaaS companies choose their core value metric and avoid the per-seat pricing trap?',
-  },
-  {
-    title: 'PM Team Archetypes',
-    prompt: 'What are the three product manager archetypes outlined by Shreyas Doshi, and how should teams hire for them?',
-  },
-];
-
 export const ChatArea: React.FC<ChatAreaProps> = ({
   messages,
   isLoading,
   onSendMessage,
   activeMode,
-  onResetMode,
+  onOpenShip30,
+  onOpenKnowledge,
   errorMessage,
   onClearError,
   onOpenArtifact,
   hasArtifacts,
 }) => {
   const [inputText, setInputText] = useState('');
+  const [thinkActive, setThinkActive] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom whenever messages or loading state changes
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -68,146 +53,223 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     }
   };
 
+  const hasMessages = messages.length > 0;
+
   return (
     <div className="chat-panel">
-      {/* Scrollable message stream */}
+      {/* Scrollable conversation stream */}
       <div className="chat-scroll-container" ref={scrollRef}>
-        {messages.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-state-icon">
-              <Sparkles size={28} color="#fff" />
+        {!hasMessages ? (
+          /* Professional Monochrome Hero Empty State */
+          <div className="hero-empty-state">
+            <div className="hero-logo-wrapper">
+              <Logo size={48} />
             </div>
-            <h2>The Lenny Growth Assistant</h2>
-            <p>
-              Ask questions grounded in Lenny's podcast transcripts and newsletter deep dives, or generate high-impact essays with the Ship 30 for 30 writing skill.
+
+            <h1 className="hero-title">Where should we begin?</h1>
+            <p className="hero-subtitle">
+              Tactical growth frameworks, retention loops, and Ship 30 essays strictly grounded in Lenny's Podcast archive.
             </p>
 
-            <div className="example-grid">
-              {EXAMPLE_PROMPTS.map((ex, i) => (
-                <div
-                  key={i}
-                  className="example-card"
-                  onClick={() => onSendMessage(ex.prompt)}
+            {/* Central Animated Input Bar */}
+            <div className="input-card-container">
+              <div className="input-textarea-row">
+                <button
+                  className="icon-circle-btn"
+                  title="Ship 30 for 30 Essay Studio"
+                  onClick={onOpenShip30}
                 >
-                  <strong style={{ display: 'block', color: 'var(--text-main)', marginBottom: 4 }}>
-                    {ex.title}
-                  </strong>
-                  <span>{ex.prompt}</span>
+                  <Plus size={17} />
+                </button>
+
+                <textarea
+                  id="hero-chat-input"
+                  className="main-chat-input"
+                  placeholder={
+                    activeMode === 'ship30'
+                      ? 'Enter topic for Ship 30 for 30 essay...'
+                      : 'Ask about retention, growth loops, or frameworks...'
+                  }
+                  rows={1}
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  autoFocus
+                />
+
+                <div className="input-actions-right">
+                  <button
+                    id="hero-think-btn"
+                    className={`think-toggle-pill ${thinkActive ? 'active' : ''}`}
+                    onClick={() => setThinkActive(!thinkActive)}
+                    title="Deep Reasoning Mode"
+                  >
+                    <span>Think</span>
+                  </button>
+
+                  <button
+                    id="hero-send-btn"
+                    className={`send-arrow-btn ${inputText.trim() && !isLoading ? 'ready' : ''}`}
+                    onClick={handleSend}
+                    disabled={!inputText.trim() || isLoading}
+                    title="Send message"
+                  >
+                    <ArrowUp size={16} />
+                  </button>
                 </div>
-              ))}
+              </div>
+            </div>
+
+            {/* Curated Monochrome Suggestion Chips */}
+            <div className="prompt-suggestions-grid">
+              <button
+                id="chip-elena"
+                className="prompt-chip"
+                onClick={() => onSendMessage('What does Elena Verna say about growth tactics that never work?')}
+              >
+                <div className="prompt-chip-icon">
+                  <Sparkles size={14} />
+                </div>
+                <div className="prompt-chip-content">
+                  <span className="prompt-chip-title">Growth tactics that never work</span>
+                  <span className="prompt-chip-desc">Elena Verna's empirical critique</span>
+                </div>
+              </button>
+
+              <button
+                id="chip-retention"
+                className="prompt-chip"
+                onClick={() => onSendMessage('What is the fundamental law of retention according to Casey Winters and Elena Verna?')}
+              >
+                <div className="prompt-chip-icon">
+                  <Compass size={14} />
+                </div>
+                <div className="prompt-chip-content">
+                  <span className="prompt-chip-title">Fundamental law of retention</span>
+                  <span className="prompt-chip-desc">Activation milestones & habit loops</span>
+                </div>
+              </button>
+
+              <button
+                id="chip-ship30"
+                className="prompt-chip"
+                onClick={onOpenShip30}
+              >
+                <div className="prompt-chip-icon">
+                  <Feather size={14} />
+                </div>
+                <div className="prompt-chip-content">
+                  <span className="prompt-chip-title">Ship 30 for 30 Essay Studio</span>
+                  <span className="prompt-chip-desc">Generate grounded 1,250-word tactical essay</span>
+                </div>
+              </button>
+
+              <button
+                id="chip-knowledge"
+                className="prompt-chip"
+                onClick={onOpenKnowledge}
+              >
+                <div className="prompt-chip-icon">
+                  <Globe size={14} />
+                </div>
+                <div className="prompt-chip-content">
+                  <span className="prompt-chip-title">Inspect Knowledge Base</span>
+                  <span className="prompt-chip-desc">Authoritative ChatPRD podcast archive</span>
+                </div>
+              </button>
             </div>
           </div>
         ) : (
-          messages.map((m, idx) => (
-            <ChatMessage
-              key={m.id || idx}
-              message={m}
-              hasArtifact={hasArtifacts && idx === messages.length - 1}
-              onOpenArtifact={onOpenArtifact}
-            />
-          ))
-        )}
+          /* Active Message Stream */
+          <div className="messages-stream-wrapper">
+            {messages.map((m, idx) => (
+              <ChatMessage
+                key={m.id || idx}
+                message={m}
+                hasArtifact={hasArtifacts && idx === messages.length - 1}
+                onOpenArtifact={onOpenArtifact}
+              />
+            ))}
 
-        {/* Loading Indicator */}
-        {isLoading && (
-          <div className="message-row assistant">
-            <div className="avatar assistant">
-              <Sparkles size={18} />
-            </div>
-            <div className="message-bubble" style={{ color: 'var(--text-muted)' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span className="status-dot active" style={{ animation: 'pulse 1.2s infinite' }} />
-                <span>Searching knowledge base and formulating grounded answer...</span>
-              </span>
-            </div>
+            {isLoading && (
+              <div className="message-row assistant">
+                <div className="thinking-indicator">
+                  <span className="thinking-dot" />
+                  <span className="thinking-dot" />
+                  <span className="thinking-dot" />
+                  <span className="thinking-text">Synthesizing grounded evidence from transcripts...</span>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      {/* Error Banner */}
+      {/* Error Alert Banner */}
       {errorMessage && (
-        <div
-          style={{
-            margin: '0 24px 8px 24px',
-            padding: '10px 14px',
-            backgroundColor: 'var(--error-bg)',
-            border: '1px solid var(--error)',
-            borderRadius: 'var(--radius-md)',
-            color: '#fca5a5',
-            fontSize: '0.84rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <AlertCircle size={16} color="#ef4444" />
+        <div className="error-toast-banner">
+          <div className="error-toast-content">
+            <AlertCircle size={15} />
             <span>{errorMessage}</span>
           </div>
-          <button className="icon-btn-subtle" onClick={onClearError} title="Dismiss">
+          <button className="icon-btn-subtle" onClick={onClearError}>
             <X size={14} />
           </button>
         </div>
       )}
 
-      {/* Input Form Bar */}
-      <div className="chat-input-area">
-        <div className="input-box-wrapper">
-          <textarea
-            className="chat-textarea"
-            placeholder={
-              activeMode === 'ship30'
-                ? 'Enter topic or prompt for Ship 30 for 30 essay (e.g. "Why activation metrics fail in B2B SaaS")...'
-                : "Ask about product strategy, retention, PMF, hiring, or Lenny's guests (Shift+Enter for new line)..."
-            }
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            onKeyDown={handleKeyDown}
-            rows={1}
-          />
+      {/* Bottom Pinned Input Bar when Chat has Messages */}
+      {hasMessages && (
+        <div className="chat-bottom-dock">
+          <div className="input-card-container">
+            <div className="input-textarea-row">
+              <button
+                className="icon-circle-btn"
+                title="Ship 30 for 30 Essay Studio"
+                onClick={onOpenShip30}
+              >
+                <Plus size={17} />
+              </button>
 
-          <div className="input-toolbar">
-            <div className="mode-badge-indicator">
-              {activeMode === 'ship30' ? (
-                <span
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 4,
-                    background: 'rgba(245, 158, 11, 0.2)',
-                    color: '#fbbf24',
-                    padding: '2px 8px',
-                    borderRadius: 'var(--radius-full)',
-                    fontWeight: 600,
-                  }}
+              <textarea
+                id="chat-input"
+                className="main-chat-input"
+                placeholder={
+                  activeMode === 'ship30'
+                    ? 'Enter topic for Ship 30 for 30 essay...'
+                    : 'Ask The Lenny Growth Assistant...'
+                }
+                rows={1}
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                onKeyDown={handleKeyDown}
+                autoFocus
+              />
+
+              <div className="input-actions-right">
+                <button
+                  id="chat-think-btn"
+                  className={`think-toggle-pill ${thinkActive ? 'active' : ''}`}
+                  onClick={() => setThinkActive(!thinkActive)}
+                  title="Deep Reasoning Mode"
                 >
-                  <Feather size={12} />
-                  <span>Ship 30 for 30 Mode</span>
-                  <button
-                    type="button"
-                    style={{ background: 'none', border: 'none', color: '#fbbf24', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                    onClick={onResetMode}
-                    title="Switch back to Standard Mode"
-                  >
-                    <X size={12} />
-                  </button>
-                </span>
-              ) : (
-                <span>Grounded with Lenny Knowledge Base</span>
-              )}
-            </div>
+                  <span>Think</span>
+                </button>
 
-            <button
-              className="send-btn"
-              onClick={handleSend}
-              disabled={!inputText.trim() || isLoading}
-            >
-              <Send size={14} />
-              <span>Send</span>
-            </button>
+                <button
+                  id="send-btn"
+                  className={`send-arrow-btn ${inputText.trim() && !isLoading ? 'ready' : ''}`}
+                  onClick={handleSend}
+                  disabled={!inputText.trim() || isLoading}
+                  title="Send message"
+                >
+                  <ArrowUp size={16} />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

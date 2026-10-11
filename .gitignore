@@ -7,6 +7,8 @@ env/
 .env
 .venv
 *.log
+*.db
+*.sqlite*
 
 # Node & Frontend
 node_modules/
@@ -27,3 +29,6 @@ alembic.log
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Cloned transcript archive (external repository, auto-cloned or ingested via script)
+data/lennys-podcast-transcripts/

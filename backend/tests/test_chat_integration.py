@@ -18,15 +18,13 @@ If your retention curve does not flatten parallel to the x-axis, you have a buck
         model="test-model-v1",
     )
 
+    class MockProvider:
+        async def generate_text(self, *args, **kwargs):
+            return mock_llm_result
+
     with patch(
-        "backend.app.services.providers.base.BaseLLMProvider.generate_text",
-        new=AsyncMock(return_value=mock_llm_result),
-    ), patch(
-        "backend.app.services.providers.ollama_provider.OllamaProvider.generate_text",
-        new=AsyncMock(return_value=mock_llm_result),
-    ), patch(
-        "backend.app.services.providers.openai_provider.OpenAIProvider.generate_text",
-        new=AsyncMock(return_value=mock_llm_result),
+        "backend.app.services.agent.orchestrator.get_provider",
+        return_value=MockProvider(),
     ):
         res = client.post("/api/chat", json={
             "message": "What is the fundamental law of retention according to Elena Verna?",
@@ -69,18 +67,19 @@ Optimize for value realization, not registration completion.
         model="ship30-model",
     )
 
+    class MockProvider:
+        async def generate_text(self, *args, **kwargs):
+            return mock_ship30_result
+
     with patch(
-        "backend.app.services.providers.ollama_provider.OllamaProvider.generate_text",
-        new=AsyncMock(return_value=mock_ship30_result),
-    ), patch(
-        "backend.app.services.providers.openai_provider.OpenAIProvider.generate_text",
-        new=AsyncMock(return_value=mock_ship30_result),
+        "backend.app.services.agent.orchestrator.get_provider",
+        return_value=MockProvider(),
     ):
         res = client.post("/api/chat", json={
-            "message": "Why activation metrics lie in B2B SaaS",
+            "message": "What growth tactics never work according to Elena Verna?",
             "mode": "ship30",
             "ship30_params": {
-                "topic": "Why activation metrics lie in B2B SaaS",
+                "topic": "10 growth tactics that never work",
                 "audience": "Founders & VP of Growth",
                 "tone": "Direct & analytical",
                 "target_length": 1250

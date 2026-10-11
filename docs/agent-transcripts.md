@@ -1,94 +1,104 @@
 # Agent Execution Transcripts & Execution Logs
 ## The Lenny Growth Assistant
 
-This document contains representative execution traces and verified test outputs from the agent orchestration and RAG retrieval pipeline.
+This document records authentic execution traces and test outputs from the strict source-grounding retrieval pipeline, authoritative ChatPRD podcast transcripts ingestion, and database migration routines.
 
 ---
 
-### Example 1: Grounded Knowledge Retrieval & Citations
+### Example 1: Case A — Grounded Knowledge Retrieval & Real Citations
 
-**User Request**:
-> "What is the fundamental law of retention according to Elena Verna, and how should early stage teams calculate their activation milestone?"
+**User Query**:
+> "What does Elena Verna say about growth tactics that never work?"
 
 **Execution Steps**:
 1. **Request Intake**:
    - Route: `POST /api/chat`
    - Mode: `standard`
-   - Session: Auto-created `ChatSession(id='3a89e9f1-7c9b-43ad-8d7b-bf0d8c2e1f40')`
-2. **Tool / RAG Invocation**:
-   - Function: `retrieve_relevant_chunks(query, db, top_k=4)`
-   - Chunks matched: 3 chunks from `sample_data/01_retention_and_activation_deepdive.md`
-   - Max hybrid relevance score: `0.78` (Evidence Confidence: **TRUE**)
-3. **Citations Generated**:
-   - `Source`: "Demonstration Document: Lenny Growth Deep Dive on Retention and User Activation"
-   - `Author/Guest`: "Casey Winters & Elena Verna (Growth Advisors)"
-   - `URL`: `https://www.lennysnewsletter.com/p/retention-and-activation-guide`
-   - `Snippet`: "Retention is the single most important metric for any consumer or B2B SaaS product. If your retention curve does not flatten parallel to the x-axis, you do not have a leaky bucket—you have a bucket with no bottom..."
-4. **Model Invoked**:
-   - Provider: `ollama` (or `openai` when configured)
-   - Model: `llama3:latest`
-5. **Final Output Formatted**:
-   - Direct synthesized answer referencing Elena Verna's "bucket with no bottom" principle and Casey Winters' 7-day correlation formula.
-   - Inline citation drawer populated with source cards.
+   - Session: `ChatSession(id='c89012a4-...')`
+2. **Authoritative RAG Retrieval**:
+   - Query: `"What does Elena Verna say about growth tactics that never work?"`
+   - Chunks matched: 4 chunks from authoritative file `episodes/elena-verna/transcript.md`
+   - Hybrid relevance score: `0.72` (Evidence Confidence: **TRUE**)
+3. **Real Citation Constructed**:
+   - `source_title`: "10 growth tactics that never work | Elena Verna (Amplitude, Miro, Dropbox, SurveyMonkey)"
+   - `author_or_guest`: "Elena Verna"
+   - `url`: "https://www.youtube.com/watch?v=IHwS2By9UKM"
+   - `provenance_file`: "episodes/elena-verna/transcript.md"
+   - `snippet`: "Growth is a fairly new field. You have a lot of renowned interest in growth hacks, like what is the sure things to get growth..."
+4. **Model Synthesis**:
+   - Direct synthesized answer referencing Elena Verna's tactics from the verified episode transcript.
+   - Real citations attached to the response.
+   - `rag_used: True`.
 
 ---
 
-### Example 2: Out-of-Domain Query (Insufficient Evidence Handling)
+### Example 2: Case C — Unsupported Lenny Question
 
-**User Request**:
-> "What are the latest findings regarding quantum gravity tensor perturbations in cosmological inflation?"
+**User Query**:
+> "What did Lenny's podcast guest Professor Xavier recommend about mutant telepathy in product design?"
 
 **Execution Steps**:
 1. **Request Intake**:
    - Route: `POST /api/chat`
    - Mode: `standard`
-2. **Tool / RAG Invocation**:
-   - Function: `retrieve_relevant_chunks(query, db, top_k=4)`
-   - Chunks matched: 0 relevant chunks (Max hybrid relevance score: `0.02`)
-   - Evidence Confidence: **FALSE**
-3. **Prompt Instruction Applied**:
-   - System prompt detects `has_evidence == False`.
-   - Explicit guardrail activated:
-   > "Based on the currently indexed knowledge base, there is insufficient evidence to answer this question accurately."
-4. **Result**:
-   - The model refrains from hallucinating podcast episodes with theoretical physicists, stating honest limitations.
+2. **Authoritative RAG Retrieval**:
+   - Search across 300 authoritative chunks from `ChatPRD/lennys-podcast-transcripts`.
+   - Result: Top relevance score `0.04` (< `MIN_EVIDENCE_THRESHOLD` of `0.25`).
+   - `has_confident_evidence: False`.
+3. **Strict Policy Enforcement**:
+   - Pre-inference gate activates.
+   - Generation model is **BLOCKED**.
+   - Refusal message returned:
+     > "I couldn't find sufficient supporting information for this question in the indexed Lenny’s Podcast / Newsletter repository. I can answer only when the available source material supports the response."
+   - `citations: []`, `rag_used: False`.
 
 ---
 
-### Example 3: Dedicated "Ship 30 for 30" Essay Writer with Artifact Generation
+### Example 3: Case D — Unrelated Topic (Strict Policy)
 
-**User Request**:
-> "Write a Ship 30 for 30 essay on: The Hidden Per-Seat Pricing Trap in Collaborative Products"
+**User Query**:
+> "Write a Python script to calculate the mathematical derivative using quantum physics."
 
 **Execution Steps**:
 1. **Request Intake**:
-   - Mode: `ship30`
-   - Target Length: `1250` words
-   - Audience: "Product managers, founders, and growth leaders"
-   - Tone: "Authoritative, tactical, conversational, and analytical"
-2. **RAG Context Retrieval**:
-   - Matched: `sample_data/03_pricing_and_packaging_frameworks.md` (Patrick Campbell & Madhavan Ramanujam on value metrics and the per-seat trap).
-3. **Prompt Assembly**:
-   - `build_ship30_system_prompt()` applied with 6 structural elements: Hook, The One Big Idea, Narrative Progression, Concrete Evidence, Actionable Playbook, Memorable Takeaway.
-   - Enclosed inside artifact tags: `<<<ARTIFACT:ESSAY:title="The Hidden Per-Seat Pricing Trap">>> ... <<<END_ARTIFACT>>>`
-4. **Artifact Extractor**:
-   - Extractor regex triggered.
-   - Artifact saved to database:
-     - `table`: `artifacts`
-     - `title`: "The Hidden Per-Seat Pricing Trap"
-     - `artifact_type`: `essay`
-     - `session_id`: linked to active conversation.
-5. **Frontend Response**:
-   - Chat area displays summary: *"Created artifact: **The Hidden Per-Seat Pricing Trap** (ESSAY) — Viewable in the Artifact Viewer panel."*
-   - Artifact Viewer panel automatically opens on the right side of the screen displaying the formatted Markdown essay with Copy and Download actions.
+   - Detected tokens: `python`, `code`, `derivative`, `quantum`, `physics` (Unrelated Domain).
+2. **Authoritative RAG Retrieval**:
+   - Top relevance score: `0.02`.
+   - `has_confident_evidence: False`.
+3. **Strict Policy Enforcement**:
+   - Pre-inference gate activates.
+   - Generation model is **BLOCKED**.
+   - Refusal message returned:
+     > "I don't have sufficient information about this topic in the specified Lenny’s Podcast / Newsletter repository to provide a source-grounded answer."
+   - Zero citations. No generic AI hallucination.
 
 ---
 
-### Example 4: Provider Fallback & Offline Diagnostics
+### Example 4: Authoritative Ingestion Execution Trace
 
-**Scenario**:
-- Primary provider set to `openai` without an `OPENAI_API_KEY` present in `.env`.
-- User dispatches a message.
-- Provider layer catches `ValueError: OpenAI is not configured. Please supply OPENAI_API_KEY in .env or switch to Ollama local inference.`
-- Application reports clean HTTP 400 error banner with dismissible button rather than crashing the server or hanging indefinitely.
-- Switching to Ollama or adding the key in Settings resolves the issue immediately.
+**Command Executed**:
+```powershell
+.\venv\Scripts\python.exe scripts/ingest_authoritative_transcripts.py --limit 12
+```
+
+**Log Output**:
+```
+2026-10-11 12:40:42,212 [INFO] Connected to primary database: localhost:3306/lenny_growth_assistant
+2026-10-11 12:40:42,257 [INFO] Marked 4 legacy demonstration sources as is_authoritative=False.
+2026-10-11 12:40:42,271 [INFO] Beginning ingestion of 12 authoritative episodes from ChatPRD repository...
+2026-10-11 12:40:42,366 [INFO] [1/12] Ingested 'Elena Verna': 25 chunks (Provenance: episodes/elena-verna/transcript.md)
+2026-10-11 12:40:42,450 [INFO] [2/12] Ingested 'Casey Winters': 25 chunks (Provenance: episodes/casey-winters/transcript.md)
+2026-10-11 12:40:42,525 [INFO] [3/12] Ingested 'Brian Chesky': 25 chunks (Provenance: episodes/brian-chesky/transcript.md)
+2026-10-11 12:40:42,602 [INFO] [4/12] Ingested 'Brian Balfour': 25 chunks (Provenance: episodes/brian-balfour/transcript.md)
+2026-10-11 12:40:42,681 [INFO] [5/12] Ingested 'Patrick Campbell': 25 chunks (Provenance: episodes/patrick-campbell/transcript.md)
+2026-10-11 12:40:42,748 [INFO] [6/12] Ingested 'Shreyas Doshi': 25 chunks (Provenance: episodes/shreyas-doshi/transcript.md)
+2026-10-11 12:40:42,835 [INFO] [7/12] Ingested 'Sean Ellis': 25 chunks (Provenance: episodes/sean-ellis/transcript.md)
+2026-10-11 12:40:42,909 [INFO] [8/12] Ingested 'Elena Verna 2.0': 25 chunks (Provenance: episodes/elena-verna-20/transcript.md)
+2026-10-11 12:40:42,974 [INFO] [9/12] Ingested 'Adam Fishman': 25 chunks (Provenance: episodes/adam-fishman/transcript.md)
+2026-10-11 12:40:43,036 [INFO] [10/12] Ingested 'Albert Cheng': 25 chunks (Provenance: episodes/albert-cheng/transcript.md)
+2026-10-11 12:40:43,102 [INFO] [11/12] Ingested 'Ada Chen Rekhi': 25 chunks (Provenance: episodes/ada-chen-rekhi/transcript.md)
+2026-10-11 12:40:43,169 [INFO] [12/12] Ingested 'Alex Komoroske': 25 chunks (Provenance: episodes/alex-komoroske/transcript.md)
+=== Ingestion Complete ===
+Total Authoritative Sources: 12
+Total Authoritative Chunks:  300
+```

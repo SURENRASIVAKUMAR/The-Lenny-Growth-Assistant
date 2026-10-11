@@ -5,29 +5,39 @@
 
 ### 1. Automated Test Commands
 
-#### Run Backend Test Suite:
+#### Run Full Backend Test Suite:
 ```powershell
 # From workspace root
-.\venv\Scripts\pytest.exe backend/tests -v
+.\venv\Scripts\pytest.exe backend/tests/ -v
+```
+
+#### Run Strict Grounding & Provenance Tests Only:
+```powershell
+.\venv\Scripts\pytest.exe backend/tests/test_strict_grounding_and_provenance.py -v
 ```
 
 #### Run Frontend Production Build Check:
 ```powershell
-# From workspace root
 cd frontend
 npm run build
 ```
 
 ---
 
-### 2. Automated Test Results Summary
+### 2. Automated Test Results Summary (21 Passed)
 
 | Test File | Test Case | Status | Coverage Focus |
 |---|---|---|---|
-| `test_health.py` | `test_health_endpoint` | **PASSED** | `/api/health` status and database connection |
-| `test_health.py` | `test_config_status_endpoint` | **PASSED** | `/api/config/status` diagnostic data |
+| `test_strict_grounding_and_provenance.py` | `test_authoritative_sources_indexed` | **PASSED** | Verifies authoritative sources point to `episodes/*/transcript.md` |
+| `test_strict_grounding_and_provenance.py` | `test_synthetic_sources_excluded_from_retrieval` | **PASSED** | Verifies `is_authoritative=False` sources are never retrieved |
+| `test_strict_grounding_and_provenance.py` | `test_supported_question_grounded_answer` | **PASSED** | Supported Elena Verna query returns citations with provenance |
+| `test_strict_grounding_and_provenance.py` | `test_unrelated_topic_refusal` | **PASSED** | Quantum physics query returns exact Case D limitation response |
+| `test_strict_grounding_and_provenance.py` | `test_unsupported_lenny_question_refusal` | **PASSED** | Fictitious guest query returns exact Case C limitation response |
+| `test_strict_grounding_and_provenance.py` | `test_ship30_unsupported_topic_limitation` | **PASSED** | Ship 30 mode explains limitation for unsupported topics |
+| `test_health.py` | `test_health_endpoint` | **PASSED** | `/api/health` reports status, database type, and provider status |
+| `test_health.py` | `test_config_status_endpoint` | **PASSED** | `/api/config/status` authoritative counts and flags |
 | `test_sessions_and_isolation.py` | `test_session_lifecycle_and_isolation` | **PASSED** | Session CRUD, cascade deletion, and message isolation |
-| `test_knowledge_and_retrieval.py` | `test_knowledge_sources_list` | **PASSED** | Knowledge sources listing and metadata |
+| `test_knowledge_and_retrieval.py` | `test_knowledge_sources_list` | **PASSED** | Knowledge sources listing and chunk counts |
 | `test_knowledge_and_retrieval.py` | `test_retrieval_and_citations` | **PASSED** | Hybrid RAG retrieval, citations, and confidence flag |
 | `test_knowledge_and_retrieval.py` | `test_retrieval_insufficient_evidence` | **PASSED** | Honest handling of out-of-domain queries |
 | `test_artifacts.py` | `test_artifact_crud` | **PASSED** | Artifact creation, filtering, and deletion |
@@ -40,19 +50,18 @@ npm run build
 | `test_chat_integration.py` | `test_chat_endpoint_with_mocked_llm` | **PASSED** | Full chat lifecycle with RAG citations |
 | `test_chat_integration.py` | `test_chat_ship30_mode_with_mocked_llm` | **PASSED** | Ship 30 essay generation & artifact persistence |
 
-**Result: 15 passed in 9.32s, 0 warnings, 0 failures.**
+**Final Verification Result**: **21 passed in 7.56s**, 0 warnings, 0 failures.
 
 ---
 
-### 3. Manual UI Test Checklist
+### 3. Frontend Production Build Verification
 
-- [x] **New Session Creation**: Click "+ New Conversation" in the sidebar; verifies an empty chat stream with prompt suggestions is rendered.
-- [x] **Rename Session**: Click pencil icon next to session in sidebar; enter new title and press Enter; verifies title updates immediately and persists across refresh.
-- [x] **Delete Session**: Click trash icon; confirms dialog; verifies session and associated messages are removed from MySQL.
-- [x] **Ask Grounded Question**: Submit "What is the fundamental law of retention according to Elena Verna?"; verifies response includes inline citations drawer.
-- [x] **Citations Drawer**: Click "Grounded Sources & Citations"; verifies source title, guest name ("Elena Verna"), and quoted snippet appear.
-- [x] **Ship 30 for 30 Essay**: Click "Ship 30 for 30" button in header; select suggested topic or customize parameters; submit; verifies generated essay opens automatically in the Artifact Viewer.
-- [x] **Artifact Preview & Source**: Toggle between "Preview" and "Source" tabs in Artifact Viewer; verifies clean typography and raw markdown view.
-- [x] **Artifact Copy & Download**: Click copy button (displays green checkmark feedback); click download button (downloads `.md` or `.html` file).
-- [x] **Knowledge Base Explorer**: Click "Knowledge" in header; verifies list of 4 indexed sources and 27 chunks.
-- [x] **Settings & Diagnostics**: Click "Settings" in header; inspects MySQL status, Ollama status, and OpenAI configuration flags.
+```
+> tsc -b && vite build
+✓ 1916 modules transformed.
+dist/index.html                   0.91 kB │ gzip:  0.50 kB
+dist/assets/index-Gwj5p2Le.css   13.25 kB │ gzip:  2.98 kB
+dist/assets/index-DMectn4H.js   272.09 kB │ gzip: 82.55 kB
+✓ built in 1.59s
+```
+Zero TypeScript compiler errors (`tsc -b`). Zero bundler errors.

@@ -5,7 +5,7 @@ def test_health_endpoint(client):
     assert "status" in data
     assert "version" in data
     assert "database" in data
-    assert data["database"]["database_name"] == "lenny_growth_assistant"
+    assert data["database"]["database_name"] in ("lenny_growth_assistant", "lenny_growth_assistant_fallback.db")
     assert data["database"]["status"] == "connected"
     assert "active_provider" in data
 

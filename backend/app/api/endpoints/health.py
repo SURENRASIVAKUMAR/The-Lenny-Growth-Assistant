@@ -35,8 +35,19 @@ async def get_config_status(db: Session = Depends(get_db)):
     ollama_provider = get_provider("ollama")
     ollama_health = await ollama_provider.check_health()
     
-    source_count = db.query(KnowledgeSource).count()
-    chunk_count = db.query(DocumentChunk).count()
+    source_count = 0
+    chunk_count = 0
+    if db_info["status"] == "connected":
+        try:
+            source_count = db.query(KnowledgeSource).filter(KnowledgeSource.is_authoritative == True).count()
+            chunk_count = (
+                db.query(DocumentChunk)
+                .join(KnowledgeSource, DocumentChunk.source_id == KnowledgeSource.id)
+                .filter(KnowledgeSource.is_authoritative == True)
+                .count()
+            )
+        except Exception:
+            pass
 
     return ConfigStatusResponse(
         active_provider=settings.AI_PROVIDER,
@@ -48,6 +59,7 @@ async def get_config_status(db: Session = Depends(get_db)):
         ollama_available=ollama_health.available,
         database_status=db_info["status"],
         database_name=settings.DB_NAME,
+        active_engine=db_info.get("active_engine", "mysql"),
         rag_sources_count=source_count,
         rag_chunks_count=chunk_count,
     )

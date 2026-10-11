@@ -1,6 +1,19 @@
 import React, { useState } from 'react';
-import { Plus, MessageSquare, Trash2, Edit2, Database, Cpu } from 'lucide-react';
+import {
+  Plus,
+  Trash2,
+  Edit2,
+  Check,
+  X,
+  MessageSquare,
+  Feather,
+  BookOpen,
+  Settings as SettingsIcon,
+} from 'lucide-react';
 import type { Session, ConfigStatus } from '../types';
+import { Logo } from './Logo';
+
+export type ActiveView = 'chat' | 'settings' | 'ship30' | 'knowledge';
 
 interface SidebarProps {
   sessions: Session[];
@@ -11,6 +24,8 @@ interface SidebarProps {
   onDeleteSession: (id: string) => void;
   config: ConfigStatus | null;
   isMobileOpen: boolean;
+  activeView: ActiveView;
+  onNavigate: (view: ActiveView) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -20,8 +35,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onCreateSession,
   onRenameSession,
   onDeleteSession,
-  config,
   isMobileOpen,
+  activeView,
+  onNavigate,
 }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
@@ -41,109 +57,177 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const handleDelete = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    if (window.confirm('Are you sure you want to delete this conversation?')) {
+    if (window.confirm('Delete this conversation?')) {
       onDeleteSession(id);
     }
   };
 
+  const handleChatSelect = (id: string) => {
+    onSelectSession(id);
+    onNavigate('chat');
+  };
+
+  const handleNewChat = () => {
+    onCreateSession();
+    onNavigate('chat');
+  };
+
   return (
     <aside className={`sidebar ${isMobileOpen ? 'mobile-open' : ''}`}>
-      <div className="sidebar-header">
-        <div className="brand-badge">
-          <div className="brand-icon">L</div>
-          <div className="brand-text">
-            <h1>Lenny Assistant</h1>
-            <p>Product & Growth Intelligence</p>
-          </div>
+      {/* Brand Header */}
+      <div className="sidebar-header" onClick={() => onNavigate('chat')}>
+        <div className="sidebar-brand">
+          <Logo size={24} />
+          <span className="sidebar-brand-title">Lenny Growth</span>
         </div>
       </div>
 
-      <button className="new-chat-btn" onClick={onCreateSession}>
-        <Plus size={16} />
-        <span>New Conversation</span>
-      </button>
+      {/* Primary Action: New Chat Button */}
+      <div className="sidebar-new-chat-wrapper">
+        <button className="new-chat-btn" onClick={handleNewChat}>
+          <Plus size={16} />
+          <span>New chat</span>
+        </button>
+      </div>
 
+      {/* Main Pages Navigation */}
+      <div className="sidebar-nav-links">
+        <button
+          id="nav-chat"
+          type="button"
+          className={`sidebar-nav-item ${activeView === 'chat' ? 'active' : ''}`}
+          onClick={() => onNavigate('chat')}
+        >
+          <MessageSquare size={16} />
+          <span>Chat</span>
+        </button>
+        <button
+          id="nav-ship30"
+          type="button"
+          className={`sidebar-nav-item ${activeView === 'ship30' ? 'active' : ''}`}
+          onClick={() => onNavigate('ship30')}
+        >
+          <Feather size={16} />
+          <span>Ship 30 Studio</span>
+        </button>
+        <button
+          id="nav-knowledge"
+          type="button"
+          className={`sidebar-nav-item ${activeView === 'knowledge' ? 'active' : ''}`}
+          onClick={() => onNavigate('knowledge')}
+        >
+          <BookOpen size={16} />
+          <span>Knowledge Library</span>
+        </button>
+        <button
+          id="nav-settings"
+          type="button"
+          className={`sidebar-nav-item ${activeView === 'settings' ? 'active' : ''}`}
+          onClick={() => onNavigate('settings')}
+        >
+          <SettingsIcon size={16} />
+          <span>Settings & Account</span>
+        </button>
+      </div>
+
+      {/* Conversations Stream */}
       <div className="session-list-section">
-        <div className="session-section-title">Conversations</div>
-        {sessions.map((s) => {
-          const isActive = s.id === activeSessionId;
-          const isEditing = editingId === s.id;
+        <div className="session-section-title">Recent Conversations</div>
+        <div className="session-items-scroll">
+          {sessions.length === 0 ? (
+            <div className="session-empty-hint">No past conversations</div>
+          ) : (
+            sessions.map((s) => {
+              const isActive = activeView === 'chat' && s.id === activeSessionId;
+              const isEditing = editingId === s.id;
 
-          return (
-            <div
-              key={s.id}
-              className={`session-item ${isActive ? 'active' : ''}`}
-              onClick={() => onSelectSession(s.id)}
-            >
-              <MessageSquare size={14} style={{ marginRight: 8, flexShrink: 0 }} />
-              
-              {isEditing ? (
-                <input
-                  type="text"
-                  className="form-input"
-                  style={{ padding: '2px 6px', fontSize: '0.82rem', height: 26 }}
-                  value={editTitle}
-                  autoFocus
-                  onClick={(e) => e.stopPropagation()}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                  onBlur={() => handleSaveRename(s)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleSaveRename(s);
-                    if (e.key === 'Escape') setEditingId(null);
-                  }}
-                />
-              ) : (
-                <span className="session-item-title" title={s.title}>
-                  {s.title}
-                </span>
-              )}
-
-              <div className="session-actions">
-                <button
-                  className="icon-btn-subtle"
-                  title="Rename"
-                  onClick={(e) => handleStartRename(e, s)}
+              return (
+                <div
+                  key={s.id}
+                  className={`session-item ${isActive ? 'active' : ''}`}
+                  onClick={() => handleChatSelect(s.id)}
                 >
-                  <Edit2 size={12} />
-                </button>
-                <button
-                  className="icon-btn-subtle"
-                  title="Delete"
-                  onClick={(e) => handleDelete(e, s.id)}
-                >
-                  <Trash2 size={12} />
-                </button>
-              </div>
-            </div>
-          );
-        })}
+                  <MessageSquare size={13} className="session-item-icon" />
 
-        {sessions.length === 0 && (
-          <div style={{ padding: '16px 10px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            No saved conversations yet. Click "New Conversation" to start.
-          </div>
-        )}
+                  {isEditing ? (
+                    <div className="session-edit-row" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="text"
+                        className="session-edit-input"
+                        value={editTitle}
+                        autoFocus
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleSaveRename(s);
+                          if (e.key === 'Escape') setEditingId(null);
+                        }}
+                      />
+                      <button
+                        className="icon-btn-micro"
+                        onClick={() => handleSaveRename(s)}
+                        title="Save"
+                      >
+                        <Check size={12} />
+                      </button>
+                      <button
+                        className="icon-btn-micro"
+                        onClick={() => setEditingId(null)}
+                        title="Cancel"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ) : (
+                    <span className="session-item-title" title={s.title}>
+                      {s.title}
+                    </span>
+                  )}
+
+                  {!isEditing && (
+                    <div className="session-actions">
+                      <button
+                        className="icon-btn-subtle"
+                        title="Rename"
+                        onClick={(e) => handleStartRename(e, s)}
+                      >
+                        <Edit2 size={12} />
+                      </button>
+                      <button
+                        className="icon-btn-subtle delete-action"
+                        title="Delete"
+                        onClick={(e) => handleDelete(e, s.id)}
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
 
+      {/* Sidebar Footer: User Profile Card (Navigates to Settings Page) */}
       <div className="sidebar-footer">
-        <div className="provider-status-badge">
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <span className={`status-dot ${config?.database_status === 'connected' ? 'active' : 'inactive'}`} />
-            <Database size={13} style={{ marginRight: 6 }} />
-            <span>MySQL: {config?.database_name || 'lenny_growth_assistant'}</span>
+        <button
+          type="button"
+          className={`sidebar-user-card ${activeView === 'settings' ? 'active' : ''}`}
+          onClick={() => onNavigate('settings')}
+          title="Open Settings & Account"
+        >
+          <div className="sidebar-user-avatar">SS</div>
+          <div className="sidebar-user-meta">
+            <span className="sidebar-user-name">Surenra S</span>
+            <span className="sidebar-user-badge">Pro Member • Settings</span>
           </div>
-        </div>
-
-        <div className="provider-status-badge">
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <span className="status-dot active" />
-            <Cpu size={13} style={{ marginRight: 6 }} />
-            <span>
-              {config?.active_provider === 'openai' ? 'OpenAI' : 'Ollama'}: {config?.active_model || 'Local'}
-            </span>
-          </div>
-        </div>
+          <span className="sidebar-user-settings-icon">
+            <SettingsIcon size={15} />
+          </span>
+        </button>
       </div>
     </aside>
   );
 };
+
+export default Sidebar;

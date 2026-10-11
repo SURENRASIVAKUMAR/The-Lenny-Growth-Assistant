@@ -63,7 +63,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
       {/* Header */}
       <div className="artifact-panel-header">
         <div className="artifact-title-group">
-          {isHtml ? <Globe size={16} color="#818cf8" /> : <FileText size={16} color="#818cf8" />}
+          {isHtml ? <Globe size={16} color="#ffffff" /> : <FileText size={16} color="#ffffff" />}
           
           {artifacts.length > 1 ? (
             <select
